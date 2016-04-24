@@ -37,28 +37,59 @@ var bot = controller.spawn({
 }).startRTM();
 
 //The greeting
-controller.hears(['hello', 'hey', 'greetings', 'sup'], 'direct_message,direct_mention,mention', function(bot, message) {
+controller.hears(['hello', 'hey', 'greetings', 'sup', 'hi'], 'direct_message,direct_mention,mention', function(bot, message) {
 
     bot.api.reactions.add({
         timestamp: message.ts,
         channel: message.channel,
-        name: 'robot_face',
+        name: 'wave',
     }, function(err, res) {
         if (err) {
             bot.botkit.log('Failed to add emoji reaction :(', err);
         }
     });
 
-
     controller.storage.users.get(message.user, function(err, user) {
         if (user && user.name) {
-            bot.reply(message, 'Hello ' + user.name + '!!');
+            bot.reply(message, 'Hello ' + user.name + '!! Ready to work on an idea?');
         } else {
-            bot.reply(message, 'Hello. #AdeleVoice');
-            bot.reply(message, 'How are you? #AlsoAdeleVoice');
+            bot.startConversation(message,function(err,convo) {
+	                convo.say('Hello. #AdeleVoice');
+	        })        
         }
     });
 });
+
+
+//Foundy's Introduction
+controller.hears(['uptime', 'identify yourself', 'what are you', 'who are you', 'tell me about yourself', 'your name'],
+    'direct_message,direct_mention,mention', function(bot, message) {
+
+        var hostname = os.hostname();
+        var uptime = formatUptime(process.uptime());
+
+        bot.reply(message,
+            '*I\'m Foundy the Startup Bot*, but you can just call me <@' + bot.identity.name + '>! I\'m only ' + uptime + ' old, but I know a whole lot about starting things!');
+
+    });
+
+function formatUptime(uptime) {
+    var unit = 'second';
+    if (uptime > 60) {
+        uptime = uptime / 60;
+        unit = 'minute';
+    }
+    if (uptime > 60) {
+        uptime = uptime / 60;
+        unit = 'hour';
+    }
+    if (uptime != 1) {
+        unit = unit + 's';
+    }
+
+    uptime = uptime + ' ' + unit;
+    return uptime;
+}
 
 //teaching Foundy your name
 controller.hears(['call me (.*)', 'my name is (.*)'], 'direct_message,direct_mention,mention', function(bot, message) {
@@ -71,17 +102,17 @@ controller.hears(['call me (.*)', 'my name is (.*)'], 'direct_message,direct_men
         }
         user.name = name;
         controller.storage.users.save(user, function(err, id) {
-            bot.reply(message, 'Got it. I will call you ' + user.name + ' from now on.');
+            bot.reply(message, 'Got it. I\'ll call you ' + user.name + ' from now on.');
         });
     });
 });
 
 //Having Foundy recall your name
-controller.hears(['what is my name', 'who am i', 'what\'s my name', 'whats my name', 'my name'], 'direct_message,direct_mention,mention', function(bot, message) {
+controller.hears(['who am i', 'my name'], 'direct_message,direct_mention,mention', function(bot, message) {
 
     controller.storage.users.get(message.user, function(err, user) {
         if (user && user.name) {
-            bot.reply(message, 'Your name is ' + user.name);
+            bot.reply(message, 'Your name is ' + user.name + '.');
         } else {
             bot.startConversation(message, function(err, convo) {
                 if (!err) {
@@ -131,8 +162,7 @@ controller.hears(['what is my name', 'who am i', 'what\'s my name', 'whats my na
                                     bot.reply(message, 'Got it. I will call you ' + user.name + ' from now on.');
                                 });
                             });
-
-
+                            
 
                         } else {
                             // this happens if the conversation ended prematurely for some reason
@@ -145,50 +175,19 @@ controller.hears(['what is my name', 'who am i', 'what\'s my name', 'whats my na
     });
 });
 
-//Foundy's Introduction
-controller.hears(['uptime', 'identify yourself', 'who are you', 'what is your name', 'tell me about yourself', 'what\'s your name', 'your name'],
-    'direct_message,direct_mention,mention', function(bot, message) {
+// Idea conversation
+controller.hears(['idea'], 'direct_message,direct_mention,mention', function(bot,message) {
 
-        var hostname = os.hostname();
-        var uptime = formatUptime(process.uptime());
-
-        bot.reply(message,
-            ':robot_face: *I\'m Foundy the Startup Bot*, but you can just call me <@' + bot.identity.name +
-             '>! I am only ' + uptime + ' old, but I know a whole lot about starting things!');
-
-    });
-
-function formatUptime(uptime) {
-    var unit = 'second';
-    if (uptime > 60) {
-        uptime = uptime / 60;
-        unit = 'minute';
-    }
-    if (uptime > 60) {
-        uptime = uptime / 60;
-        unit = 'hour';
-    }
-    if (uptime != 1) {
-        unit = unit + 's';
-    }
-
-    uptime = uptime + ' ' + unit;
-    return uptime;
-}
-
-controller.hears(['idea'], 'message_received', function(bot,message) {
-
-  // start a conversation to handle this response.
   bot.startConversation(message,function(err,convo) {
 
-    convo.say('Oh you have an idea?!?');
-    convo.say('Does it have a name yet?');
+    convo.say('Oh you have an idea!!');
+    convo.ask('Does it have a name yet?');
 
   });
 });
 
 // Shuts down the bot completely 
-controller.hears(['shutdown', 'shut down'], 'direct_message,direct_mention,mention', function(bot, message) {
+controller.hears(['bedtime', 'shutdown', 'shut down'], 'direct_message,direct_mention,mention', function(bot, message) {
 
     bot.startConversation(message, function(err, convo) {
 
@@ -196,7 +195,7 @@ controller.hears(['shutdown', 'shut down'], 'direct_message,direct_mention,menti
             {
                 pattern: bot.utterances.yes,
                 callback: function(response, convo) {
-                    convo.say('Bye!');
+                    convo.say('Bye! :v:');
                     convo.next();
                     setTimeout(function() {
                         process.exit();
