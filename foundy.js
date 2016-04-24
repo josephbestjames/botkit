@@ -19,8 +19,7 @@ This is Foundy, who was built with Botkit.
 Remember that the order of your code impacts the order in which Foundy speaks!
     
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-
-
+//Opening Sequence
 if (!process.env.token) {
     console.log('Error: Specify token in environment');
     process.exit(1);
@@ -146,7 +145,7 @@ controller.hears(['what is my name', 'who am i', 'what\'s my name', 'whats my na
     });
 });
 
-//Introduction
+//Foundy's Introduction
 controller.hears(['uptime', 'identify yourself', 'who are you', 'what is your name', 'tell me about yourself', 'what\'s your name', 'your name'],
     'direct_message,direct_mention,mention', function(bot, message) {
 
